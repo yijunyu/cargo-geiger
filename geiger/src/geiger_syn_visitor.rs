@@ -32,8 +32,6 @@ fn get_filename(path: &Path) -> String {
                 if a.to_os_string() == "src" {
                     let p1 = PathBuf::new().join(ancestor.parent().expect("not empty").file_stem().expect("not empty").to_os_string());
                     let pp = p1.join(p2.parent().expect("not empty"));
-                    std::fs::create_dir_all(PathBuf::new().join("../safe").join(&pp)).unwrap();
-                    std::fs::create_dir_all(PathBuf::new().join("../unsafe").join(&pp)).unwrap();
                     return pp.join(path.file_stem().expect("not empty").to_os_string()).to_string_lossy().to_string();
                 }
                 p2 = Path::new(a).to_path_buf().join(p2);
@@ -84,7 +82,9 @@ impl<'ast> visit::Visit<'ast> for GeigerSynVisitor {
             self.enter_unsafe_scope();
         }
         if self.path != "" {
-            std::fs::write(filename, item_fn.into_token_stream().to_string().as_bytes()).unwrap();
+	    let code = item_fn.into_token_stream().to_string().replacen(" unsafe ", " ", 1);
+            std::fs::create_dir_all(PathBuf::new().join(&filename).parent().unwrap()).unwrap();
+            std::fs::write(filename, code.as_bytes()).unwrap();
         }
         self.metrics
             .counters
