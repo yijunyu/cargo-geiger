@@ -19,6 +19,7 @@ pub enum Prefix {
 #[derive(Clone, Copy, Debug, EnumString, Eq, PartialEq)]
 pub enum OutputFormat {
     Ascii,
+    Code,
     Json,
     GitHubMarkdown,
     Ratio,

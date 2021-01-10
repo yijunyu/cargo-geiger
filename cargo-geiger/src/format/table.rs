@@ -162,7 +162,7 @@ fn table_footer(
     status: CrateDetectionStatus,
 ) -> ColoredString {
     match output_format {
-        OutputFormat::Ratio => {
+        OutputFormat::Ratio | OutputFormat::Code => {
             table_footer_safe_ratio(used, not_used, output_format, status)
         }
         _ => table_footer_unsafe_counts(used, not_used, output_format, status),
@@ -175,7 +175,7 @@ fn table_row(
     output_format: OutputFormat,
 ) -> String {
     match output_format {
-        OutputFormat::Ratio => {
+        OutputFormat::Ratio | OutputFormat::Code => {
             // print safe ratio
             let fmt = |used: &Count, not_used: &Count| {
                 format!(
@@ -265,6 +265,10 @@ mod table_tests {
         ),
         case(
             OutputFormat::Ratio,
+            String::from("    2/6=33.33%     6/14=42.86%       10/22=45.45%       14/30=46.67%    18/38=47.37%")
+        ),
+        case(
+            OutputFormat::Code,
             String::from("    2/6=33.33%     6/14=42.86%       10/22=45.45%       14/30=46.67%    18/38=47.37%")
         ),
         case(

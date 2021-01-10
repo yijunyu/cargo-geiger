@@ -18,17 +18,18 @@ pub fn find_unsafe_in_file(
         .map_err(|e| ScanFileError::Io(e, path.to_path_buf()))?;
     let src = String::from_utf8(src)
         .map_err(|e| ScanFileError::Utf8(e, path.to_path_buf()))?;
-    find_unsafe_in_string(&src, include_tests)
+    find_unsafe_in_string(&src, include_tests, path)
         .map_err(|e| ScanFileError::Syn(e, path.to_path_buf()))
 }
 
 pub fn find_unsafe_in_string(
     src: &str,
     include_tests: IncludeTests,
+    path: &Path,
 ) -> Result<RsFileMetrics, syn::Error> {
     use syn::visit::Visit;
     let syntax = syn::parse_file(&src)?;
-    let mut vis = GeigerSynVisitor::new(include_tests);
+    let mut vis = GeigerSynVisitor::new(include_tests, path);
     vis.visit_file(&syntax);
     Ok(vis.metrics)
 }

@@ -569,8 +569,10 @@ version = "0.4.6"
 dependencies = [
  "cargo-geiger-serde",
  "proc-macro2",
+ "quote",
  "rstest",
  "syn",
+ "syn-serde",
  "tempfile",
 ]
 
@@ -1393,6 +1395,17 @@ dependencies = [
  "proc-macro2",
  "quote",
  "unicode-xid",
+]
+
+[[package]]
+name = "syn-serde"
+version = "0.2.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "5f1d040e5e4b154eb33306a49ab78f965e0d6eb2c8e1c136c3a32987f943c30e"
+dependencies = [
+ "proc-macro2",
+ "serde",
+ "syn",
 ]
 
 [[package]]

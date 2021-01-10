@@ -1,8 +1,9 @@
 use super::{
     file_forbids_unsafe, is_test_fn, is_test_mod, IncludeTests, RsFileMetrics,
 };
-
 use syn::{visit, Expr, ImplItemMethod, ItemFn, ItemImpl, ItemMod, ItemTrait};
+use quote::ToTokens;
+use std::path::{Path, PathBuf};
 
 pub struct GeigerSynVisitor {
     /// Count unsafe usage inside tests
@@ -19,14 +20,40 @@ pub struct GeigerSynVisitor {
     /// This is needed since unsafe scopes can be nested and we need to know
     /// when we leave the outmost unsafe scope and get back into a safe scope.
     unsafe_scopes: u32,
+
+    pub path: String,
+}
+
+fn get_filename(path: &Path) -> String {
+    let mut p2 = PathBuf::new();
+    for ancestor in path.ancestors() {
+        match ancestor.file_stem() {
+            Some(a) => {
+                if a.to_os_string() == "src" {
+                    let p1 = PathBuf::new().join(ancestor.parent().expect("not empty").file_stem().expect("not empty").to_os_string());
+                    let pp = p1.join(p2.parent().expect("not empty"));
+                    std::fs::create_dir_all(PathBuf::new().join("../safe").join(&pp)).unwrap();
+                    std::fs::create_dir_all(PathBuf::new().join("../unsafe").join(&pp)).unwrap();
+                    return pp.join(path.file_stem().expect("not empty").to_os_string()).to_string_lossy().to_string();
+                }
+                p2 = Path::new(a).to_path_buf().join(p2);
+            },
+            None => {
+                break
+            }
+        }
+    }
+    String::from("")
 }
 
 impl GeigerSynVisitor {
-    pub fn new(include_tests: IncludeTests) -> Self {
+
+    pub fn new(include_tests: IncludeTests, path: &Path) -> Self {
         GeigerSynVisitor {
             include_tests,
             metrics: Default::default(),
             unsafe_scopes: 0,
+            path: get_filename(path),
         }
     }
 
@@ -37,6 +64,7 @@ impl GeigerSynVisitor {
     pub fn exit_unsafe_scope(&mut self) {
         self.unsafe_scopes -= 1;
     }
+
 }
 
 impl<'ast> visit::Visit<'ast> for GeigerSynVisitor {
@@ -50,8 +78,13 @@ impl<'ast> visit::Visit<'ast> for GeigerSynVisitor {
         if IncludeTests::No == self.include_tests && is_test_fn(item_fn) {
             return;
         }
+        let mut filename = format!("../safe/{}-{}.rs", self.path, item_fn.sig.ident.to_string());
         if item_fn.sig.unsafety.is_some() {
-            self.enter_unsafe_scope()
+            filename = format!("../unsafe/{}-{}.rs", self.path, item_fn.sig.ident.to_string());
+            self.enter_unsafe_scope();
+        }
+        if self.path != "" {
+            std::fs::write(filename, item_fn.into_token_stream().to_string().as_bytes()).unwrap();
         }
         self.metrics
             .counters
