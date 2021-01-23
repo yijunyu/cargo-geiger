@@ -15,5 +15,5 @@ grep "=====" saferatio.csv | wc
 tokei -e safe -e unsafe -t=Rust
 tokei safe
 tokei unsafe
-tar cvfj $ROOT/../$(basename $(pwd)).tar.bz2 safe unsafe saferatio.csv
+tar cvfj ../$(basename $(pwd)).tar.bz2 safe unsafe saferatio.csv
 
