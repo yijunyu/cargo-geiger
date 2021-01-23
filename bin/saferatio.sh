@@ -7,7 +7,7 @@ if [ "$1" != "" ]; then
 fi
 find $folder -name "Cargo.toml" | while read f; do
    echo ===== $f ===== | tee >> saferatio.csv
-   cargo geiger --output-format=Ratio --manifest-path $f >> saferatio.csv
+   cargo geiger --output-format=Ratio -e safe -e unsafe -j 16 --manifest-path $f >> saferatio.csv
 done
 mv ../safe .
 mv ../unsafe .
