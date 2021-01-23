@@ -94,18 +94,27 @@ fn scan(
         &scan_parameters.args.features_args,
         scan_parameters.config,
     );
-    let rs_files_used =
-        resolve_rs_file_deps(&compile_options, workspace).unwrap();
+    let rs_files_used_opt =
+        resolve_rs_file_deps(&compile_options, workspace);
     let geiger_context = find_unsafe(
         cargo_metadata_parameters,
         scan_parameters.config,
         ScanMode::Full,
         scan_parameters.print_config,
     )?;
-    Ok(ScanDetails {
-        rs_files_used,
-        geiger_context,
-    })
+    match rs_files_used_opt {
+        Ok(rs_files_used) => {
+            Ok(ScanDetails {
+                rs_files_used,
+                geiger_context,
+            })
+        },
+        Err(e) => {
+            println!("Error: {:?}", e);
+            let rs_files_used = std::collections::HashSet::<std::path::PathBuf>::new();
+            Ok(ScanDetails{rs_files_used, geiger_context})
+        }
+    }
 }
 
 fn scan_to_report(
