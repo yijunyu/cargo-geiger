@@ -82,7 +82,7 @@ impl<'ast> visit::Visit<'ast> for GeigerSynVisitor {
             self.enter_unsafe_scope();
         }
         if self.path != "" {
-	    let code = item_fn.into_token_stream().to_string().replacen(" unsafe ", " ", 1);
+	    let code = item_fn.into_token_stream().to_string().replacen("unsafe ", "", 1);
             std::fs::create_dir_all(PathBuf::new().join(&filename).parent().unwrap()).unwrap();
             std::fs::write(filename, code.as_bytes()).unwrap();
         }
